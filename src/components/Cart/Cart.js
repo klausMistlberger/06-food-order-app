@@ -39,7 +39,7 @@ const Cart = (props) => {
   );
 
   const orderHandler = () => {
-    console.log('ordering...');
+    // console.log('ordering...');
     if (hasItems) {
       setCheckout(true);
     }
