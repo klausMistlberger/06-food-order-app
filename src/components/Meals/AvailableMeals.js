@@ -8,40 +8,38 @@ const DB_URL =
 
 const AvailableMeals = () => {
   const [fetchedMeals, setFetchedMeals] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [fetchingError, setFetchingError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [fetchingError, setFetchingError] = useState(null);
 
   useEffect(() => {
     const fetchMeals = async () => {
-      setIsLoading(true);
-      setFetchingError(false);
-      try {
-        const fetchedData = await fetch(DB_URL);
+      // setIsLoading(true);
+      // setFetchingError(false);
+      const fetchedData = await fetch(DB_URL);
 
-        if (fetchedData.ok) {
-          const data = await fetchedData.json();
-          const meals = [];
-          for (const key in data) {
-            meals.push({ ...data[key], id: key });
-          }
-
-          setFetchedMeals(meals);
-        } else {
-          setFetchingError(true);
-        }
-      } catch (error) {
-        console.log(error);
-        setFetchingError(true);
-      } finally {
-        setIsLoading(false);
+      if (!fetchedData.ok) {
+        throw new Error("something's not cookin...");
       }
+
+      const data = await fetchedData.json();
+      const meals = [];
+      for (const key in data) {
+        meals.push({ ...data[key], id: key });
+      }
+
+      setFetchedMeals(meals);
+      setIsLoading(false);
     };
 
-    fetchMeals();
+    fetchMeals().catch((error) => {
+      console.log(error);
+      setIsLoading(false);
+      setFetchingError(error.message);
+    });
   }, [fetchingError]);
 
   const retryHandler = () => {
-    setFetchingError(false);
+    setFetchingError(null);
   };
 
   const mealsList = fetchedMeals.map((meal) => (
