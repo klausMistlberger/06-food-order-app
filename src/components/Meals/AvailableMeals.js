@@ -8,24 +8,41 @@ const DB_URL =
 
 const AvailableMeals = () => {
   const [fetchedMeals, setFetchedMeals] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [fetchingError, setFetchingError] = useState(false);
 
   useEffect(() => {
     const fetchMeals = async () => {
-      const fetchedData = await fetch(DB_URL);
-      const data = await fetchedData.json();
-      // console.log(data);
+      setIsLoading(true);
+      setFetchingError(false);
+      try {
+        const fetchedData = await fetch(DB_URL);
 
-      const meals = [];
+        if (fetchedData.ok) {
+          const data = await fetchedData.json();
+          const meals = [];
+          for (const key in data) {
+            meals.push({ ...data[key], id: key });
+          }
 
-      for (const key in data) {
-        meals.push({ ...data[key], id: key });
+          setFetchedMeals(meals);
+        } else {
+          setFetchingError(true);
+        }
+      } catch (error) {
+        console.log(error);
+        setFetchingError(true);
+      } finally {
+        setIsLoading(false);
       }
-
-      // console.log(meals);
-      setFetchedMeals(meals);
     };
+
     fetchMeals();
-  }, []);
+  }, [fetchingError]);
+
+  const retryHandler = () => {
+    setFetchingError(false);
+  };
 
   const mealsList = fetchedMeals.map((meal) => (
     <MealItem
@@ -40,7 +57,14 @@ const AvailableMeals = () => {
   return (
     <section className={classes.meals}>
       <Card>
-        <ul>{mealsList}</ul>
+        {isLoading && <h3 className={classes.info}>cooking meals list...</h3>}
+        {fetchingError && (
+          <div className={classes.info}>
+            <h3>something's not cookin' right...</h3>
+            <button onClick={retryHandler}>Try again</button>
+          </div>
+        )}
+        {!isLoading && !fetchingError && <ul>{mealsList}</ul>}
       </Card>
     </section>
   );
